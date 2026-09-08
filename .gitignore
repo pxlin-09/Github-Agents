@@ -1,0 +1,24 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Env / secrets
+.env
+.env.local
+
+# Local runtime artifacts
+workspace/
+trajectories/*
+!trajectories/.gitkeep
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

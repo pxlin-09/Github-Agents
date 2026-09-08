@@ -1,0 +1,66 @@
+# configs/default.yaml
+
+agent:
+  max_steps: 40
+  # Used for branch name and git author identity.
+  name_template: "issue-agent-for-{repo}"
+
+model:
+  # Key into configs/models.yaml (or a concrete model id).
+  name: gpt-5.6-luna
+
+environment:
+  # local | docker
+  type: docker
+  workspace_root: workspace
+  docker:
+    image: issue-agent-sandbox:latest
+    build_context: docker/sandbox
+    auto_build: true
+    workdir: /workspace
+    # bridge required for in-container clone/push/PR; use none only for offline local runs
+    network: bridge
+    memory: 2g
+    cpus: "2"
+
+tools:
+  - filesystem
+  - search
+  - testing
+  - git
+
+# Names hidden from list_dir / search; also used for rg --glob excludes.
+workspace:
+  skip:
+    - .git
+    - .hg
+    - .svn
+    - .venv
+    - venv
+    - __pycache__
+    - .pytest_cache
+    - .mypy_cache
+    - .ruff_cache
+    - node_modules
+    - dist
+    - build
+  # Lines ensured in the target repo .gitignore before commit.
+  gitignore:
+    - __pycache__/
+    - "*.py[cod]"
+    - .pytest_cache/
+    - .issue-agent-pr-request.json
+
+trajectory:
+  enabled: true
+  dir: trajectories
+
+github:
+  # Placeholders: {issue}, {slug} (slugified issue title)
+  branch_template: "issue-agent/issue{issue}-{slug}"
+
+limits:
+  max_steps: 40
+  max_runtime_seconds: 900
+  max_test_runs: 10
+  max_cost_usd: 2.0
