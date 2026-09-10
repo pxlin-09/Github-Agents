@@ -27,3 +27,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src", "."]
+markers = [
+  "openai: live OpenAI API call (needs OPENAI_API_KEY; uses gpt-5-nano)",
+]

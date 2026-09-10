@@ -67,7 +67,7 @@ Do not commit `.env`.
 Defaults live in:
 
 - `configs/default.yaml` — environment (`docker` / `local`), step limits, branch template, workspace skip lists
-- `configs/models.yaml` — model ids (default: `gpt-5.6-luna`)
+- `configs/models.yaml` — model ids (default: `gpt-5.6-luna`; tests use `gpt-5-nano`)
 
 With Docker enabled, the first run builds `issue-agent-sandbox:latest` from `docker/sandbox/` if the image is missing. Ensure Docker is running.
 
@@ -93,7 +93,7 @@ Useful flags:
 
 ```bash
 issue-agent --repo OWNER/REPO --issue 1 --environment local   # no Docker
-issue-agent --repo OWNER/REPO --issue 1 --model gpt-5.6       # override model
+issue-agent --repo OWNER/REPO --issue 1 --model gpt-5-nano    # cheapest override
 issue-agent --repo OWNER/REPO --issue 1 --max-steps 20
 issue-agent --repo OWNER/REPO --issue 1 --no-trajectory
 ```
@@ -120,6 +120,23 @@ Against an existing checkout, without GitHub orchestration:
 ```bash
 python scripts/smoke_query.py --environment local --workspace /path/to/repo
 ```
+
+## Tests
+
+```bash
+pip install -e ".[dev]"
+pytest tests/unit -q
+pytest tests/integration -q   # needs OPENAI_API_KEY for live openai-marked tests
+```
+
+Live model smoke only:
+
+```bash
+pytest -m openai
+```
+
+- `tests/unit/` — config, parsing, PR draft helpers, path safety, tool registry
+- `tests/integration/` — local environment, WorkspaceGit commit flow, factory/tools, agent loop (scripted + optional live nano)
 
 ## Layout
 

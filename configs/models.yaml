@@ -10,3 +10,9 @@ models:
     provider: openai
     model: gpt-5.6
     reasoning_effort: medium
+
+  # Cheapest option — used by the test suite / cheap local overrides
+  gpt-5-nano:
+    provider: openai
+    model: gpt-5-nano
+    reasoning_effort: low
