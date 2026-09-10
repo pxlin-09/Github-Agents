@@ -1,0 +1,7 @@
+# Runtime (mirrors pyproject.toml)
+openai>=1.40.0
+PyYAML>=6.0
+python-dotenv>=1.0.0
+
+# Dev / tests
+pytest>=8.0
