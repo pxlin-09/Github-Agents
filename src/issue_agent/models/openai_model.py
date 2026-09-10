@@ -14,4 +14,3 @@ class OpenAIModel(Model):
             input=input_items,
             tools=tools,
         )
-

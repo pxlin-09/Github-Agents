@@ -63,4 +63,5 @@ limits:
   max_steps: 40
   max_runtime_seconds: 900
   max_test_runs: 10
+  # Halt further model calls once tracked spend reaches this.
   max_cost_usd: 2.0

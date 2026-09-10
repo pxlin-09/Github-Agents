@@ -13,6 +13,7 @@ from issue_agent.github.client import GitHubClient
 from issue_agent.github.gitops import WorkspaceGit
 from issue_agent.github.models import GitHubIssue, PullRequestDraft
 from issue_agent.models.openai_model import OpenAIModel
+from issue_agent.runtime.cost import CostTracker
 from issue_agent.tools.filesystem import ListDirTool, ReadFileTool, WriteFileTool
 from issue_agent.tools.git import GitDiffTool, GitStatusTool
 from issue_agent.tools.registry import ToolRegistry
@@ -51,11 +52,16 @@ def build_agent(
         for tool in builder():
             tools.register(tool)
 
+    cost_tracker = CostTracker(
+        model=config.model_name,
+        max_cost_usd=config.limits.max_cost_usd,
+    )
     agent = CodingAgent(
         model=OpenAIModel(config.model_name),
         tools=tools,
         max_steps=config.max_steps,
         trajectory_dir=config.trajectory_dir,
+        cost_tracker=cost_tracker,
     )
     return agent, env
 
