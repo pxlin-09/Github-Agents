@@ -2,7 +2,10 @@ import json
 import logging
 
 from issue_agent.agent.prompts import SYSTEM_PROMPT
+from issue_agent.runtime.cost import CostLimitExceeded, CostTracker
 from issue_agent.runtime.trajectory import Trajectory
+
+logger = logging.getLogger(__name__)
 
 
 class CodingAgent:
@@ -13,12 +16,14 @@ class CodingAgent:
         max_steps=30,
         trajectory_dir=None,
         verbose=True,
+        cost_tracker: CostTracker | None = None,
     ):
         self.model = model
         self.tools = tools
         self.max_steps = max_steps
         self.trajectory_dir = trajectory_dir
         self.verbose = verbose
+        self.cost_tracker = cost_tracker
 
     def log_action(self, func_name, arg, output, prune=200, level=logging.INFO):
         if not self.verbose:
@@ -50,10 +55,17 @@ class CodingAgent:
 
         try:
             for _ in range(self.max_steps):
+                if self.cost_tracker is not None:
+                    self.cost_tracker.ensure_can_call()
+
                 response = self.model.generate(
                     input_items=inputs,
                     tools=self.tools.schemas(),
                 )
+
+                if self.cost_tracker is not None:
+                    usage = getattr(response, "usage", None)
+                    self.cost_tracker.record_usage(usage)
 
                 calls = [
                     item
@@ -89,6 +101,14 @@ class CodingAgent:
                     self.log_action(call.name, args, result)
 
             raise RuntimeError("Agent reached maximum steps")
+        except CostLimitExceeded:
+            logger.error(
+                "Stopping agent: cost limit reached "
+                "(spent=$%.4f max=$%.4f)",
+                self.cost_tracker.spent_usd if self.cost_tracker else 0.0,
+                self.cost_tracker.max_cost_usd if self.cost_tracker else 0.0,
+            )
+            raise
         finally:
             self._save(trajectory)
 
