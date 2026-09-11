@@ -149,18 +149,29 @@ class DockerEnvironment(Environment):
     def list_dir(self, path: str = ".") -> str:
         rel = self._safe_rel(path or ".")
         script = (
-            "import os\n"
+            "import os, sys\n"
             f"path={rel!r}\n"
             f"skip={set(self.skip_names)!r}\n"
+            "if not os.path.exists(path):\n"
+            "    print('MISSING', file=sys.stderr)\n"
+            "    raise SystemExit(2)\n"
             "if not os.path.isdir(path):\n"
-            "    raise SystemExit('not a directory')\n"
+            "    print('NOTDIR', file=sys.stderr)\n"
+            "    raise SystemExit(3)\n"
             "entries=[]\n"
             "for name in sorted(os.listdir(path), key=lambda n: (not os.path.isdir(os.path.join(path,n)), n.lower())):\n"
             "    if name in skip: continue\n"
             "    entries.append(name + ('/' if os.path.isdir(os.path.join(path,name)) else ''))\n"
             "print('\\n'.join(entries) if entries else '(empty)')\n"
         )
-        return self.run(["python", "-c", script]).rstrip("\n")
+        code, out, err = self._exec_raw(["python", "-c", script])
+        if code == 2:
+            raise FileNotFoundError(f"No such directory: {path}")
+        if code == 3:
+            raise NotADirectoryError(f"Not a directory: {path}")
+        if code != 0:
+            raise OSError(err or out or f"Cannot list directory: {path}")
+        return out.rstrip("\n")
 
     def execute(self, command: list[str]) -> str:
         code, stdout, stderr = self._exec_raw(command)

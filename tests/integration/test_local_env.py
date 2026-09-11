@@ -38,3 +38,15 @@ def test_local_list_dir_missing(tmp_workspace: Path):
     env = LocalEnvironment(tmp_workspace)
     with pytest.raises(FileNotFoundError):
         env.list_dir("missing")
+
+
+def test_list_dir_missing_returns_tool_error(tmp_workspace: Path):
+    from issue_agent.tools.filesystem import ListDirTool
+    from issue_agent.tools.registry import ToolRegistry
+
+    env = LocalEnvironment(tmp_workspace)
+    registry = ToolRegistry()
+    registry.register(ListDirTool(env))
+    result = registry.execute("list_dir", {"path": ".github"})
+    assert result.startswith("Error:")
+    assert ".github" in result

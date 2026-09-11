@@ -19,5 +19,5 @@ class ToolRegistry:
 
         try:
             return tool.execute(**arguments)
-        except (OSError, ValueError) as exc:
+        except (OSError, ValueError, RuntimeError) as exc:
             return f"Error: {exc}"
